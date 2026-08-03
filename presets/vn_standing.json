@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "name": "vn_standing",
+  "globals": {
+    "model_name": "Anima_-_base-v1-0.safetensors",
+    "weight_dtype": "default",
+    "clip_name": "qwen_3_06b_base.safetensors",
+    "clip_type": "stable_diffusion",
+    "vae_name": "qwen_image_vae.safetensors",
+    "model_shift": 3.0,
+    "loras": [
+      [
+        "None",
+        0.8
+      ],
+      [
+        "None",
+        0.8
+      ],
+      [
+        "None",
+        0.8
+      ],
+      [
+        "None",
+        0.8
+      ]
+    ],
+    "width": 768,
+    "height": 1152,
+    "count_per_item": 1,
+    "seed": 369239789236,
+    "seed_mode": "fixed",
+    "steps": 50,
+    "refiner_step": 12,
+    "cfg": 4.5,
+    "sampler_name": "euler",
+    "scheduler": "simple",
+    "denoise": 1.0,
+    "negative_prompt": "worst quality, low quality, score_1, score_2, score_3, artist name, blurry, jpeg artifacts, chromatic aberration, different character, changed outfit, changed hairstyle, changed hair colour, changed eye colour, changed accessories, duplicate character, multiple people, extra people, extra limbs, missing limbs, malformed hands, fused fingers, extra fingers, cropped feet, cropped head, inconsistent proportions, unreadable face, text, logo, watermark, signature, speech bubble, caption, comic panel, border, multiple views, character turnaround sheet",
+    "positive_prompt": "masterpiece, best quality, score_7, score_8, @ebifurya, \n1girl, shiroko  \\(blue archive\\), school uniform,\nstanding, looking at viewer, cowboy shot, white background,",
+    "pose_strength": "1.35",
+    "character_folder": "AnimaActions/Shiroko",
+    "remove_background": true,
+    "birefnet_model": "BiRefNet_toonout",
+    "upscale_method": "bicubic",
+    "upscale_factor": 1.5,
+    "comfy_url": "http://127.0.0.1:8188",
+    "output_base": "./output"
+  },
+  "expressions": [
+    {
+      "label": "admiration",
+      "prompt": ", blush, smile"
+    },
+    {
+      "label": "amusement",
+      "prompt": ", grin, smile, hand on own cheek"
+    },
+    {
+      "label": "anger",
+      "prompt": ", angry, frown, crossed arms"
+    },
+    {
+      "label": "annoyance",
+      "prompt": ", annoyed, frown, pout, crossed arms"
+    },
+    {
+      "label": "caring",
+      "prompt": ", affectionate, smile"
+    },
+    {
+      "label": "confusion",
+      "prompt": ", confused, head tilt, hand on own cheek"
+    },
+    {
+      "label": "curiosity",
+      "prompt": ", curious, head tilt, hand on own cheek"
+    },
+    {
+      "label": "desire",
+      "prompt": ", blush, parted lips"
+    },
+    {
+      "label": "disappointment",
+      "prompt": ", disappointed, frown, sigh, downturned eyes"
+    },
+    {
+      "label": "disgust",
+      "prompt": ", disgust, frown, looking to the side"
+    },
+    {
+      "label": "embarrassment",
+      "prompt": ", embarrassed, blush, looking to the side, arms behind back"
+    },
+    {
+      "label": "excitement",
+      "prompt": ", excited, open mouth, smile, ganbaru pose, sparkling eyes"
+    },
+    {
+      "label": "fear",
+      "prompt": ", scared, sweatdrop, open mouth, trembling, looking to the side"
+    },
+    {
+      "label": "grief",
+      "prompt": ", crying, tears, frown, downturned eyes, slouching"
+    },
+    {
+      "label": "joy",
+      "prompt": ", happy, smile, closed eyes, hand on own chest,"
+    },
+    {
+      "label": "love",
+      "prompt": ", lovestruck, blush, smile"
+    },
+    {
+      "label": "nervousness",
+      "prompt": ", nervous, sweatdrop, frown, fidgeting, arms behind back"
+    },
+    {
+      "label": "neutral",
+      "prompt": ", expressionless, arms at sides"
+    },
+    {
+      "label": "pride",
+      "prompt": ", smug, smile, arms at sides"
+    },
+    {
+      "label": "realization",
+      "prompt": ", realization, open mouth, hand on own cheek"
+    },
+    {
+      "label": "relief",
+      "prompt": ", sigh, smile, closed eyes, hand on own cheek"
+    },
+    {
+      "label": "sadness",
+      "prompt": ", sad, frown, tears, downturned eyes"
+    },
+    {
+      "label": "surprise",
+      "prompt": ", surprised, open mouth,"
+    },
+    {
+      "label": "arousal",
+      "prompt": ", aroused, blush, parted lips, drooling"
+    }
+  ]
+}
