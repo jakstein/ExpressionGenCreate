@@ -1,11 +1,18 @@
-"""Thin requests-based client for a ComfyUI server running on :8188 (default)."""
+"""Thin client for a ComfyUI server running on :8188 (default).
+
+HTTP (requests) is used for the standard API; the websocket is used to receive
+each output node's results as soon as it finishes, so the caller can download
+and display images progressively instead of waiting for the whole batch.
+"""
 
 from __future__ import annotations
 
+import json
 import time
 import uuid
 
 import requests
+import websocket
 
 
 class ComfyClient:
@@ -56,6 +63,70 @@ class ComfyClient:
         raise TimeoutError(
             f"Timed out after {self.timeout}s waiting for ComfyUI prompt {prompt_id}"
         )
+
+    def _ws_url(self) -> str:
+        ws_base = self.base.replace("http://", "ws://", 1).replace(
+            "https://", "wss://", 1
+        )
+        return f"{ws_base}/ws?clientId={self.client_id}"
+
+    def stream_node_outputs(self, prompt_id: str, interval: float = 0.5):
+        """Yield ``(node_id, output)`` as output nodes finish for ``prompt_id``.
+
+        Blocks until ComfyUI reports the prompt is done (``execution_success``,
+        ``execution_error``, ``execution_interrupted``, or a legacy
+        ``executing`` with a null node). Each yielded ``output`` is the node's
+        UI output dict, e.g. ``{"images": [{"filename", "subfolder", "type"}]}``
+        for a SaveImage node, matching the shape found in ``/history``.
+
+        The same ``client_id`` that queued the prompt must be used, otherwise
+        ComfyUI will not route ``executed`` messages to this connection. If the
+        websocket cannot be established or dies mid-stream this raises, so the
+        caller can fall back to polling ``/history``.
+        """
+        ws = websocket.create_connection(self._ws_url(), timeout=15)
+        try:
+            elapsed = 0.0
+            while elapsed < self.timeout:
+                ws.settimeout(interval)
+                try:
+                    raw = ws.recv()
+                except websocket.WebSocketTimeoutException:
+                    elapsed += interval
+                    continue
+                if not isinstance(raw, str):
+                    continue
+                try:
+                    event = json.loads(raw)
+                except ValueError:
+                    continue
+                if event.get("type") not in (
+                    "executed",
+                    "executing",
+                    "execution_success",
+                    "execution_error",
+                    "execution_interrupted",
+                ):
+                    continue
+                data = event.get("data") or {}
+                if data.get("prompt_id") != prompt_id:
+                    continue
+                mtype = event["type"]
+                if mtype == "executed":
+                    node = data.get("node")
+                    if node is not None:
+                        yield node, data.get("output") or {}
+                elif mtype == "executing":
+                    if data.get("node") is None:
+                        return
+                else:
+                    return
+            raise TimeoutError(
+                f"Timed out after {self.timeout}s waiting for ComfyUI prompt "
+                f"{prompt_id}"
+            )
+        finally:
+            ws.close()
 
     def get_image(self, filename: str, subfolder: str, type_: str) -> bytes:
         r = self.session.get(
