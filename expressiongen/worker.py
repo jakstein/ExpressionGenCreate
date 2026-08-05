@@ -26,9 +26,16 @@ class GenerationWorker(QThread):
     finished = Signal(bool, str)    # success, message
     log = Signal(str)               # detailed log line
 
-    def __init__(self, preset: Preset):
+    def __init__(
+        self,
+        preset: Preset,
+        target_path: str | None = None,
+    ):
         super().__init__()
         self.preset = preset
+        # When set, the first generated image is written to this exact file
+        # (overwriting any existing file) instead of the default naming scheme.
+        self.target_path = target_path
         self._client: ComfyClient | None = None
 
     def request_interrupt(self) -> None:
@@ -63,10 +70,17 @@ class GenerationWorker(QThread):
             data = self._client.get_image(
                 im["filename"], im["subfolder"], im["type"]
             )
-            fname = f"{label}.png" if not multiple else f"{label}_{i + 1:02d}.png"
-            fpath = os.path.join(outdir, fname)
-            with open(fpath, "wb") as fh:
-                fh.write(data)
+            if self.target_path:
+                fpath = self.target_path
+                tmp = fpath + ".regen.tmp"
+                with open(tmp, "wb") as fh:
+                    fh.write(data)
+                os.replace(tmp, fpath)
+            else:
+                fname = f"{label}.png" if not multiple else f"{label}_{i + 1:02d}.png"
+                fpath = os.path.join(outdir, fname)
+                with open(fpath, "wb") as fh:
+                    fh.write(data)
             self.image_ready.emit(label, fpath)
             total += 1
             self.log.emit(f"Saved {fpath}")

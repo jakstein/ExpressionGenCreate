@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import random
 
 from PySide6.QtWidgets import (
     QApplication,
@@ -51,6 +52,7 @@ class MainWindow(QMainWindow):
         self.global_panel = GlobalPanel()
         self.expression_panel = ExpressionPanel()
         self.results_panel = ResultsPanel()
+        self.results_panel.regenerate_requested.connect(self.on_regenerate_image)
 
         self.left_split = QSplitter(Qt.Vertical)
         self.left_split.addWidget(self.global_panel)
@@ -195,6 +197,39 @@ class MainWindow(QMainWindow):
         if self.worker is not None:
             self.worker.request_interrupt()
             self.statusBar().showMessage("Interrupt requested...")
+
+    def on_regenerate_image(self, label: str, path: str) -> None:
+        """Regenerate a single expression's image with a fresh random seed.
+
+        Runs the exact same workflow (globals + that expression's prompt) but
+        with a randomized seed and a batch size of 1. The new image overwrites
+        the clicked image in place, and the preview is updated.
+        """
+        if self.worker is not None and self.worker.isRunning():
+            self.statusBar().showMessage("Generation already in progress.")
+            return
+        preset = self.collect_preset()
+        expr = next((e for e in preset.expressions if e.label == label), None)
+        if expr is None:
+            return
+
+        single = Preset(name=preset.name, globals=preset.globals, expressions=[expr])
+        single.globals.seed = random.randint(0, 2**50)
+        single.globals.seed_mode = "fixed"
+        single.globals.count_per_item = 1
+
+        self.worker = GenerationWorker(single, target_path=path or None)
+        self.worker.progress.connect(self.statusBar().showMessage)
+        self.worker.log.connect(lambda m: print("[comfy]", m))
+        if path:
+            self.worker.image_ready.connect(self.results_panel.replace_image)
+        else:
+            self.worker.image_ready.connect(self.results_panel.add_image)
+        self.worker.finished.connect(self.on_finished)
+        self.run_btn.setEnabled(False)
+        self.interrupt_btn.setEnabled(True)
+        self.worker.start()
+        self.statusBar().showMessage(f"Regenerating '{label}' with a new seed...")
 
     def on_finished(self, success: bool, message: str) -> None:
         self.run_btn.setEnabled(True)
